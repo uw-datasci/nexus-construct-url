@@ -29951,16 +29951,8 @@ async function run() {
       `🚀 Constructing deployment URL for project: ${projectName}, team: ${teamSlug}`
     );
 
-    // Get GitHub API instance (uses GITHUB_TOKEN from environment automatically)
-    const github = (0,_actions_github__WEBPACK_IMPORTED_MODULE_1__.getOctokit)(process.env.GITHUB_TOKEN);
-
-    // Construct deployment info from PR
-    const result = await (0,_url_constructor_js__WEBPACK_IMPORTED_MODULE_2__/* .constructDeploymentInfo */ .p)(
-      github,
-      _actions_github__WEBPACK_IMPORTED_MODULE_1__.context,
-      projectName,
-      teamSlug
-    );
+    // Construct deployment info from PR (no GitHub API needed)
+    const result = (0,_url_constructor_js__WEBPACK_IMPORTED_MODULE_2__/* .constructDeploymentInfo */ .p)(_actions_github__WEBPACK_IMPORTED_MODULE_1__.context, projectName, teamSlug);
 
     // Set outputs
     (0,_actions_core__WEBPACK_IMPORTED_MODULE_0__.setOutput)("should-notify", result.shouldNotify.toString());
@@ -30007,7 +29999,7 @@ function sanitizeBranchName(branchName) {
     .toLowerCase()
     .replaceAll(/[^a-z0-9-]/g, "-")
     .replaceAll(/-+/g, "-") // Replace multiple consecutive hyphens with single hyphen
-    .replaceAll(/^-|-$/g, ""); // Remove leading/trailing hyphens
+    .replaceAll(/(?:^-|-$)/g, ""); // Remove leading/trailing hyphens
 }
 
 /**
@@ -30023,36 +30015,27 @@ function constructDeploymentUrl(projectName, branchName, teamSlug) {
 }
 
 /**
- * Gets commit information for the PR
- * @param {Object} github - GitHub API instance
- * @param {Object} context - GitHub context
- * @param {Object} pr - Pull request object
- * @returns {Promise<Object>} Commit information
+ * Gets commit information from PR context (no API call needed)
+ * @param {Object} pr - Pull request object from context
+ * @returns {Object} Commit information
  */
-async function getCommitInfo(github, context, pr) {
-  // Use the head commit from the PR
-  const { data: commit } = await github.rest.repos.getCommit({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    ref: pr.head.sha,
-  });
-
+function getCommitInfo(pr) {
+  // Use information already available in PR context
   return {
-    sha: commit.sha,
-    message: commit.commit.message,
-    author: commit.commit.author,
+    sha: pr.head.sha || "",
+    message: pr.title || "", // Use PR title as fallback for commit message
+    author: pr.user || null, // Use PR author as fallback
   };
 }
 
 /**
  * Constructs deployment information from PR context
- * @param {Object} github - GitHub API instance
  * @param {Object} context - GitHub context (pull_request event)
  * @param {string} projectName - Vercel project name (required)
  * @param {string} teamSlug - Vercel team slug (required)
- * @returns {Promise<Object>} Result with shouldNotify flag and deployment info
+ * @returns {Object} Result with shouldNotify flag and deployment info
  */
-async function constructDeploymentInfo(github, context, projectName, teamSlug) {
+function constructDeploymentInfo(context, projectName, teamSlug) {
   // Get PR from context
   const pr = context.payload.pull_request;
   if (!pr) {
@@ -30071,8 +30054,8 @@ async function constructDeploymentInfo(github, context, projectName, teamSlug) {
     teamSlug
   );
 
-  // Get commit information
-  const commitInfo = await getCommitInfo(github, context, pr);
+  // Get commit information from PR context (no API call needed)
+  const commitInfo = getCommitInfo(pr);
 
   return {
     shouldNotify: true,

@@ -34,36 +34,27 @@ function constructDeploymentUrl(projectName, branchName, teamSlug) {
 }
 
 /**
- * Gets commit information for the PR
- * @param {Object} github - GitHub API instance
- * @param {Object} context - GitHub context
- * @param {Object} pr - Pull request object
- * @returns {Promise<Object>} Commit information
+ * Gets commit information from PR context (no API call needed)
+ * @param {Object} pr - Pull request object from context
+ * @returns {Object} Commit information
  */
-async function getCommitInfo(github, context, pr) {
-  // Use the head commit from the PR
-  const { data: commit } = await github.rest.repos.getCommit({
-    owner: context.repo.owner,
-    repo: context.repo.repo,
-    ref: pr.head.sha,
-  });
-
+function getCommitInfo(pr) {
+  // Use information already available in PR context
   return {
-    sha: commit.sha,
-    message: commit.commit.message,
-    author: commit.commit.author,
+    sha: pr.head.sha || "",
+    message: pr.title || "", // Use PR title as fallback for commit message
+    author: pr.user || null, // Use PR author as fallback
   };
 }
 
 /**
  * Constructs deployment information from PR context
- * @param {Object} github - GitHub API instance
  * @param {Object} context - GitHub context (pull_request event)
  * @param {string} projectName - Vercel project name (required)
  * @param {string} teamSlug - Vercel team slug (required)
- * @returns {Promise<Object>} Result with shouldNotify flag and deployment info
+ * @returns {Object} Result with shouldNotify flag and deployment info
  */
-async function constructDeploymentInfo(github, context, projectName, teamSlug) {
+function constructDeploymentInfo(context, projectName, teamSlug) {
   // Get PR from context
   const pr = context.payload.pull_request;
   if (!pr) {
@@ -82,8 +73,8 @@ async function constructDeploymentInfo(github, context, projectName, teamSlug) {
     teamSlug
   );
 
-  // Get commit information
-  const commitInfo = await getCommitInfo(github, context, pr);
+  // Get commit information from PR context (no API call needed)
+  const commitInfo = getCommitInfo(pr);
 
   return {
     shouldNotify: true,
