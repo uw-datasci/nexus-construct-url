@@ -9,7 +9,7 @@ Add this action to your workflow file (e.g., `.github/workflows/deploy.yml`):
 ```yaml
 - name: Construct Deployment URL
   id: construct-url
-  uses: your-username/nexus-construct-url@v1
+  uses: uwdatasci/nexus-construct-url@v1
   with:
     project-name: 'your-vercel-project-name'  # Required
     team-slug: 'your-team-slug'                # Required
