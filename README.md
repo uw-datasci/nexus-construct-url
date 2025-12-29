@@ -1,14 +1,40 @@
-# Sample GitHub Action
+# Construct Deployment URL - GitHub Action
 
-A template repository for creating GitHub Actions using Node.js.
+A reusable GitHub Action that constructs Vercel deployment URLs from PR branch names.
 
-## Quick Start
+## Usage
 
-1. **Clone this template** or use it to create a new repository
-2. **Customize `action.yml`** with your action's metadata, inputs, and outputs
-3. **Implement your logic** in `src/index.js`
-4. **Build the action** to bundle it into `dist/`
-5. **Test and publish** your action
+Add this action to your workflow file (e.g., `.github/workflows/deploy.yml`):
+
+```yaml
+- name: Construct Deployment URL
+  id: construct-url
+  uses: your-username/nexus-construct-url@v1
+  with:
+    project-name: 'your-vercel-project-name'  # Required
+    team-slug: 'your-team-slug'                # Required
+
+- name: Use Deployment URL
+  run: |
+    if [ "${{ steps.construct-url.outputs.should-notify }}" == "true" ]; then
+      echo "Deployment URL: ${{ steps.construct-url.outputs.deployment-info }}"
+    fi
+```
+
+### Outputs
+
+- `should-notify`: Boolean indicating whether deployment info is available
+- `deployment-info`: JSON string containing deployment information:
+  ```json
+  {
+    "url": "https://project-name-git-branch-name-team.vercel.app",
+    "ref": "branch-name",
+    "state": "constructed",
+    "commitSha": "abc1234",
+    "commitMessage": "Commit message",
+    "commitAuthor": { ... }
+  }
+  ```
 
 ## Project Structure
 

@@ -1,15 +1,19 @@
-name: 'Sample Action'
-description: 'A sample GitHub Action template'
+name: 'Construct Deployment URL'
+description: 'Constructs Vercel deployment URL from PR branch name'
 
 inputs:
-  example-input:
-    description: 'An example input parameter'
+  project-name:
+    description: 'Vercel project name'
     required: true
-    default: 'default value'
+  team-slug:
+    description: 'Vercel team slug'
+    required: true
 
 outputs:
-  example-output:
-    description: 'An example output value'
+  should-notify:
+    description: 'Whether a notification should be sent'
+  deployment-info:
+    description: 'Deployment information as JSON string'
 
 runs:
   using: 'node20'
